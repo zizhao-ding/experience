@@ -1,15 +1,15 @@
 <template>
   <el-form :model="form" :rules="rules" ref="formRef">
     <el-form-item label="选择类型" prop="type">
-      <el-radio-group v-model="form.type" @change="handleTypeChange">
+      <el-radio-group v-model="form.type">
         <el-radio label="A">类型 A</el-radio>
         <el-radio label="B">类型 B</el-radio>
       </el-radio-group>
     </el-form-item>
-    <el-form-item label="用户名" prop="username">
+    <el-form-item v-if="showUsername" label="用户名" prop="username">
       <el-input v-model="form.username"></el-input>
     </el-form-item>
-    <el-form-item label="密码" prop="password">
+    <el-form-item v-if="showPassword" label="密码" prop="password">
       <el-input v-model="form.password" type="password"></el-input>
     </el-form-item>
     <el-form-item>
@@ -29,24 +29,31 @@ const form = ref({
 
 const rules = ref({
   username: [
-    { required: true, message: '请输入用户名', trigger: 'blur' }
+    { required: false, message: '请输入用户名', trigger: 'blur' }
   ],
-  password: []
+  password: [
+    { required: false, message: '请输入密码', trigger: 'blur' }
+  ]
 });
 
-const formRef = ref(null);
+const showUsername = ref(true);
+const showPassword = ref(false);
 
-const handleTypeChange = (value) => {
-  if (value === 'B') {
-    rules.value.password = [
-      { required: true, message: '请输入密码', trigger: 'blur' }
-    ];
-  } else {
-    rules.value.password = [];
+watch(() => form.value.type, (newType) => {
+  if (newType === 'A') {
+    showUsername.value = true;
+    showPassword.value = false;
+    rules.value.username[0].required = true;
+    rules.value.password[0].required = false;
+  } else if (newType === 'B') {
+    showUsername.value = true;
+    showPassword.value = true;
+    rules.value.username[0].required = true;
+    rules.value.password[0].required = true;
   }
-};
+}, { immediate: true });
 
-watch(() => form.value.type, handleTypeChange);
+const formRef = ref(null);
 
 const onSubmit = () => {
   formRef.value.validate((valid) => {
@@ -57,9 +64,6 @@ const onSubmit = () => {
     }
   });
 };
-
-// 初始化时调用一次，以根据初始类型设置规则
-handleTypeChange(form.value.type);
 </script>
 <style scoped>
 .el-form {
